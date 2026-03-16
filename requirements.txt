@@ -1,0 +1,3 @@
+highrise-bot-sdk==23.1.0b12
+flask
+gunicorn
