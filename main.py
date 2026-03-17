@@ -11,7 +11,7 @@ app = Flask('')
 def home(): return "Sugux Bot is Running!"
 
 def run_web():
-    app.run(host='0.0.0.0', port=8080)
+    app.run(host='0.0.0.0', port=1000)
 
 # --- ЛОГИКА БОТА ---
 class MyBot(BaseBot):
