@@ -5,9 +5,10 @@ from highrise import BaseBot, User
 from highrise.models import SessionMetadata, Position
 from highrise.__main__ import main
 
+# Веб-сервер
 app = Flask(__name__)
 @app.route('/')
-def index(): return "Sugux Bot is Alive!"
+def index(): return "Sugux Bot is Working!"
 
 class MyBot(BaseBot):
     def __init__(self):
@@ -76,8 +77,11 @@ def run_web():
 
 if __name__ == "__main__":
     Thread(target=run_web).start()
-    # Твой новый лобби
+    # Запуск бота
     room_id = "6300a02c6c0f7d15f7a783b6"
-    api_key = os.environ.get("API_KEY") # Ключ должен быть в Settings -> Env Vars в Render
-    definitions = [("main:MyBot", room_id, api_key)]
-    asyncio.run(main(definitions))
+    api_key = os.environ.get("API_KEY")
+    if api_key:
+        definitions = [("main:MyBot", room_id, api_key)]
+        asyncio.run(main(definitions))
+    else:
+        print("ОШИБКА: API_KEY не найден в настройках Render!")
