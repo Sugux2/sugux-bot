@@ -5,7 +5,6 @@ from highrise import BaseBot, User
 from highrise.models import SessionMetadata, Position
 from highrise.__main__ import main
 
-# Веб-сервер для UptimeRobot
 app = Flask(__name__)
 @app.route('/')
 def index(): return "Sugux Bot is Alive!"
@@ -21,7 +20,7 @@ class MyBot(BaseBot):
             with open("vips.json", "r") as f: self.vips = json.load(f)
 
     async def on_user_join(self, user: User, position: Position) -> None:
-        await self.highrise.chat(f"Привет, @{user.username}! Рады видеть тебя! 👋")
+        await self.highrise.chat(f"Привет, @{user.username}! Добро пожаловать! 👋")
 
     async def on_chat(self, user: User, message: str) -> None:
         msg = message.lower().strip()
@@ -77,6 +76,8 @@ def run_web():
 
 if __name__ == "__main__":
     Thread(target=run_web).start()
-    # Правильный запуск для новых версий библиотеки
-    definitions = [("main:MyBot", "6300a02c6c0f7d15f7a783b6")]
+    # Твой новый лобби
+    room_id = "6300a02c6c0f7d15f7a783b6"
+    api_key = os.environ.get("API_KEY") # Ключ должен быть в Settings -> Env Vars в Render
+    definitions = [("main:MyBot", room_id, api_key)]
     asyncio.run(main(definitions))
