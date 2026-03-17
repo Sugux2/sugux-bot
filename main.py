@@ -1,8 +1,8 @@
 import asyncio, json, os
 from threading import Thread
 from flask import Flask
-from highrise import BaseBot, User, Position
-from highrise.models import SessionMetadata
+from highrise import BaseBot, User
+from highrise.models import SessionMetadata, Position
 
 app = Flask(__name__)
 @app.route('/')
@@ -25,19 +25,16 @@ class MyBot(BaseBot):
         with open(file, "w") as f: json.dump(data, f)
 
     async def on_user_join(self, user: User, position: Position) -> None:
-        # Авто-приветствие при входе игрока
         await self.highrise.chat(f"Привет, @{user.username}! Добро пожаловать! 👋")
 
     async def on_chat(self, user: User, message: str) -> None:
         msg = message.lower().strip()
         user_id = user.id
         
-        # Проверка прав (Владелец или Модератор комнаты = Админ)
         permissions = await self.highrise.get_bundle_privileges(user_id)
         is_admin = permissions.content.get("is_moderator", False) or permissions.content.get("is_owner", False)
         is_vip = str(user_id) in self.vips or is_admin
 
-        # 1. СОХРАНЕНИЕ (Админ) — "сейв название"
         if msg.startswith("сейв ") and is_admin:
             name = msg.split(" ", 1)[1]
             room_users = await self.highrise.get_room_users()
@@ -47,7 +44,6 @@ class MyBot(BaseBot):
                     self.save_data(self.locs, self.loc_file)
                     await self.highrise.chat(f"✅ Точка '{name}' сохранена!")
 
-        # 2. УДАЛЕНИЕ (Админ) — "удалить название"
         elif msg.startswith("удалить ") and is_admin:
             name = msg.split(" ", 1)[1]
             if name in self.locs:
@@ -55,7 +51,6 @@ class MyBot(BaseBot):
                 self.save_data(self.locs, self.loc_file)
                 await self.highrise.chat(f"🗑 Точка '{name}' удалена.")
 
-        # 3. ВЫДАЧА VIP (Админ) — "вип дай @ник"
         elif msg.startswith("вип дай ") and is_admin:
             try:
                 username = msg.split("@")[1].strip()
@@ -65,10 +60,9 @@ class MyBot(BaseBot):
                     self.vips[str(target_id)] = username
                     self.save_data(self.vips, self.vips_file)
                     await self.highrise.chat(f"🌟 @{username} теперь VIP!")
-                else: await self.highrise.chat("Игрок не найден в комнате.")
+                else: await self.highrise.chat("Игрок не найден.")
             except: await self.highrise.chat("Пример: вип дай @ник")
 
-        # 4. ТЕЛЕПОРТ — "тп название" или просто "вип"
         elif msg.startswith("тп ") or msg == "вип":
             loc_name = "вип" if msg == "вип" else msg.split(" ", 1)[1]
             if loc_name in self.locs:
@@ -79,7 +73,6 @@ class MyBot(BaseBot):
                     await self.highrise.teleport(user_id, Position(p[0], p[1], p[2], p[3]))
             else: await self.highrise.chat(f"❓ Точка '{loc_name}' не найдена.")
 
-        # 5. АНИМАЦИИ
         elif msg.isdigit():
             await self.highrise.send_emote(msg, user_id)
 
