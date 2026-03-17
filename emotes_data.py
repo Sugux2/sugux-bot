@@ -217,3 +217,4 @@ EMOTES_LIST = {
     "216": "idle-guitar",
     "217": "emote-gift",
     "218": "dance-employee"
+}
