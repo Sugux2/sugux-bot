@@ -5,10 +5,11 @@ from highrise.__main__ import main
 
 class MyBot(BaseBot):
     async def on_user_join(self, user: User, position: Position | AnchorPosition) -> None:
+        # Теперь TypeError не будет, так как есть position
         try:
-            await self.highrise.chat(f"Welcome @{user.username}!")
-        except Exception as e:
-            print(f"Error: {e}")
+            await self.highrise.chat(f"Hello @{user.username}! Room is active 24/7.")
+        except:
+            pass
 
     async def on_chat(self, user: User, message: str) -> None:
         if message.isdigit():
