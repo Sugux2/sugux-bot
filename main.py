@@ -4,19 +4,20 @@ import os
 import logging
 from threading import Thread
 from flask import Flask
-from highrise import BaseBot, User, Position
+from highrise import BaseBot, User, Position, AnchorPosition
+from highrise.models import SessionMetadata
 from highrise.__main__ import main
 
-# Настройка логов для отслеживания ошибок в Render
+# Настройка логов
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("bot")
 
-# Flask сервер, чтобы Render видел активность на порту 10000
+# Flask для Render (чтобы сервис не засыпал)
 app = Flask(__name__)
 
 @app.route('/')
 def index():
-    return "Бот активен и работает!"
+    return "Bot is running on Highrise SDK 24.1.0"
 
 class MyBot(BaseBot):
     def __init__(self):
@@ -29,13 +30,17 @@ class MyBot(BaseBot):
             except:
                 self.locs = {}
 
-    async def on_user_join(self, user: User, position: Position) -> None:
-        await self.highrise.chat(f"Привет, @{user.username}! Напиши номер эмоции или 'тп [название]'.")
+    # Исправленная функция: теперь принимает position
+    async def on_user_join(self, user: User, position: Position | AnchorPosition) -> None:
+        try:
+            await self.highrise.chat(f"Привет, @{user.username}! Напиши 'тп [название]' или номер эмоции.")
+        except Exception as e:
+            logger.error(f"Ошибка в on_user_join: {e}")
 
     async def on_chat(self, user: User, message: str) -> None:
         msg = message.lower().strip()
-
-        # Команда для сохранения точки (только для админа/владельца)
+        
+        # Сохранение точки
         if msg.startswith("сейв "):
             name = msg.split(" ", 1)[1]
             room_users = await self.highrise.get_room_users()
@@ -46,7 +51,7 @@ class MyBot(BaseBot):
                         json.dump(self.locs, f)
                     await self.highrise.chat(f"✅ Точка '{name}' сохранена!")
 
-        # Команда для телепортации
+        # Телепортация
         elif msg.startswith("тп "):
             loc = msg.split(" ", 1)[1]
             if loc in self.locs:
@@ -60,23 +65,23 @@ class MyBot(BaseBot):
             await self.highrise.send_emote(msg, user.id)
 
 def run_web():
-    # Запуск на порту 10000, который требует Render
+    # Порт 10000 обязателен для Render
     app.run(host='0.0.0.0', port=10000)
 
 if __name__ == "__main__":
-    # Запускаем веб-часть в отдельном потоке
+    # Запуск веб-сервера
     Thread(target=run_web, daemon=True).start()
     
-    # Твой Room ID
+    # ID твоей комнаты
     room_id = "69b56b7ebacc85f7998d47a9"
     
-    # Берем токен из настроек Render
+    # Берем токен из Environment Variables
     api_key = os.environ.get("API_KEY")
     
     if api_key:
-        # Важно: передаем definitions, чтобы не было ошибки TypeError
+        # Передаем правильный формат definitions
         definitions = [("main:MyBot", room_id, api_key)]
-        logger.info("Запуск бота...")
+        logger.info("Бот запускается на версии 24.1.0...")
         asyncio.run(main(definitions))
     else:
-        logger.error("ОШИБКА: API_KEY не найден в Environment Variables!")
+        logger.error("ОШИБКА: API_KEY не найден в настройках Render!")
