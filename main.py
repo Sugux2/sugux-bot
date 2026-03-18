@@ -5,9 +5,9 @@ from highrise.__main__ import main
 
 class MyBot(BaseBot):
     async def on_user_join(self, user: User, position: Position | AnchorPosition) -> None:
-        # Теперь TypeError не будет, так как есть position
+        # position добавлен, TypeError больше не будет
         try:
-            await self.highrise.chat(f"Hello @{user.username}! Room is active 24/7.")
+            await self.highrise.chat(f"Hello @{user.username}!")
         except:
             pass
 
