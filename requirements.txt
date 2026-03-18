@@ -1,4 +1,5 @@
-setuptools
-highrise-bot-sdk
+setuptools==69.0.3
+highrise-bot-sdk==23.1.0b12
 flask
 gunicorn
+
